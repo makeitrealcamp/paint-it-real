@@ -1,0 +1,14 @@
+{
+  "name": "paint-it-real",
+  "version": "1.0.0",
+  "description": "A realtime paint",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "Julian Duque <julianduquej@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "socket.io": "^1.2.1"
+  }
+}

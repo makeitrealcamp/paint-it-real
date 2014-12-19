@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Paint It Real</title>
+  <style>
+    body {
+      background-color: #333;
+      color: #ccc;
+    }
+
+    canvas {
+      display: block;
+      border: dashed 1px #ccc;
+      background-color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <canvas width="600" height="400"></canvas>
+  <label>Pick a Color</label>
+  <input type="color">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    var socket = io.connect();
+    var color = '#000000';
+
+    var colorInput = $('input[type=color]');
+    var cv = $('canvas');
+    var canvas = cv[0];
+    var ctx = canvas.getContext('2d');
+
+    ctx.lineWidth = 5;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    colorInput.on('change', function () {
+      color = this.value;
+    });
+
+    cv.on('mousedown', function (e) {
+      var mouse = getMouseInfo(e);
+      var data = {
+        x: mouse.x,
+        y: mouse.y,
+        color: color
+      };
+
+      start(data);
+      socket.emit('start', data);
+
+    });
+
+    cv.on('mousemove', function (e) {
+      var mouse = getMouseInfo(e);
+
+      if (mouse.painting) {
+        var data = {
+          x: mouse.x,
+          y: mouse.y,
+          color: color
+        };
+
+        paint(data);
+        socket.emit('paint', data);
+      }
+
+    });
+
+    socket.on('start', start);
+    socket.on('paint', paint);
+
+    function start (data) {
+      ctx.beginPath();
+      ctx.strokeStyle = data.color;
+      ctx.moveTo(data.x, data.y);
+    }
+
+    function paint (data) {
+      ctx.lineTo(data.x, data.y);
+      ctx.stroke();
+    }
+
+    function getMouseInfo(e) {
+      var rect = canvas.getBoundingClientRect();
+      var painting = false;
+      
+      //  WAT!
+      if (e.buttons === 1 ||
+          (typeof e.buttons === 'undefined' && e.which === 1)) {
+        painting = true;
+      }
+
+      return {
+        painting: painting,
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      };
+    }
+
+  </script>
+</body>
+</html>
